@@ -1,0 +1,16 @@
+[package]
+name = "uorm-samples"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rivus-core = { version = "0.3.0", path = "../rivus/rivus-core" }
+rivus-logger = { version = "0.3.0", path = "../rivus/rivus-logger" }
+rivus-axum = {path = "../rivus/rivus-axum" }
+rivus-axum-macro = { path = "../rivus/rivus-axum-macro" }
+axum = "0.8.8"
+uorm = { version = "0.4.2", path = "../uorm", features = ["mysql"] }
+serde = { version = "1.0.228", features = ["derive"] }
+tokio = "1.48.0"
+anyhow = "1.0.100"
+tracing = "0.1"
