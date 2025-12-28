@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//uporm.github.io//DTD Mapper 1//EN" "https://uporm.github.io/dtd/uorm-1-mapper.dtd">
+<mapper namespace="folder">
+
+    <!-- 目录表字段 -->
+    <sql id="cols">
+        id, tenant_id, workspace_id, parent_id, seq, type, name, description, create_time, update_time
+    </sql>
+
+    <!--
+        查询指定租户和工作空间下的所有目录
+        按照序列号升序排列
+    -->
+    <select id="list">
+        select
+        <include refid="cols"/>
+        from sys_folder
+        where tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+        and type = #{type}
+        order by seq asc
+    </select>
+
+    <!--
+        判断指定目录是否有子节点
+        通过统计指定父目录ID下的记录数来判断是否存在子节点
+    -->
+    <select id="countChildren">
+        select count(*)
+        from sys_folder
+        where tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+        and parent_id = #{parentId}
+    </select>
+
+    <!--
+        根据ID获取目录信息
+        通过目录ID、租户ID和工作空间ID精确查找目录
+    -->
+    <select id="getById">
+        select
+        <include refid="cols"/>
+        from sys_folder
+        where id = #{id}
+        and tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+    </select>
+
+    <!--
+        插入新的目录记录
+        创建新目录时使用，会自动设置创建时间和更新时间
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyColumn="ids">
+        insert into sys_folder (tenant_id, workspace_id, parent_id, type, seq, name, description, create_time,
+        update_time)
+        values (4, 5, #{parentId}, 8, 9, #{name}, #{description}, now(), now())
+    </insert>
+
+    <!--
+        更新目录信息
+        更新目录名称、描述，并更新更新时间
+    -->
+    <update id="update">
+        update sys_folder
+        set name = #{name},
+        description = #{description},
+        update_time = now()
+        where id = #{id}
+        and tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+    </update>
+
+    <!--
+        删除指定的目录
+        根据目录ID、租户ID和工作空间ID删除指定目录
+    -->
+    <delete id="delete">
+        delete
+        from sys_folder
+        where id = #{id}
+        and tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+    </delete>
+
+    <!--
+        获取指定父目录下的最大序列号
+        用于在父目录下插入新目录时，默认将其放到末尾位置
+    -->
+    <select id="getMaxSeq">
+        select coalesce(max(seq), 0)
+        from sys_folder
+        where tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+        and parent_id = #{parentId}
+    </select>
+
+    <!--
+        在插入新目录时调整序列号
+        为新目录腾出位置，将指定序列号及其之后的同级目录序列号都加1
+    -->
+    <update id="shiftSeqOnInsert">
+        update sys_folder
+        set seq = seq + 1,
+        update_time = now()
+        where tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+        and parent_id = #{parentId}
+        and seq >= #{fromSeq}
+    </update>
+
+    <!--
+        删除目录后压缩序列号
+        消除删除目录后产生的序列号空隙，将指定序列号之后的同级目录序列号都减1
+    -->
+    <update id="compressSeqOnRemove">
+        update sys_folder
+        set seq = seq - 1,
+        update_time = now()
+        where tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+        and parent_id = #{parentId}
+        and seq > #{fromSeq}
+    </update>
+
+    <!--
+        更新目录的父级和序列号
+        用于移动目录时更新其父目录和序列号信息
+    -->
+    <update id="updateParentAndSeq">
+        update sys_folder
+        set parent_id = #{parentId},
+        seq = #{seq},
+        update_time = now()
+        where tenant_id = #{tenantId}
+        and workspace_id = #{workspaceId}
+        and id = #{id}
+    </update>
+</mapper>
