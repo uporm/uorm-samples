@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//uporm.github.io//DTD Mapper 1//EN" "https://uporm.github.io/dtd/uorm-1-mapper.dtd">
+<mapper namespace="workspace">
+
+    <sql id="cols">
+        id, tenant_id, `key`, name, description, create_time, update_time
+    </sql>
+
+    <select id="getMaxKey">
+        select max(`key`) from workspace where tenant_id = #{tenantId}
+    </select>
+
+    <select id="list">
+        select
+        <include refid="cols"/>
+        from workspace
+        where tenant_id = #{tenantId}
+    </select>
+
+    <insert id="insert">
+        insert into workspace (tenant_id, `key`, name, description, create_time, update_time)
+        values (#{tenantId}, #{key}, #{name}, #{description}, now(), now())
+    </insert>
+
+    <update id="update">
+        update workspace
+        set name = #{name},
+        description = #{description},
+        update_time = now()
+        where `key` = #{key}
+        and tenant_id = #{tenantId}
+    </update>
+
+    <delete id="delete">
+        delete
+        from workspace
+        where `key` = #{key}
+        and tenant_id = #{tenantId}
+    </delete>
+</mapper>

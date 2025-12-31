@@ -7,7 +7,9 @@ use axum::{Router, middleware};
 use tokio::signal;
 use tracing::{error, info};
 use crate::web::error::WebError;
-use crate::web::i18n_middleware::handle_i18n;
+use crate::web::middleware::i18n::handle_i18n;
+use crate::web::middleware::auth::handle_auth;
+use crate::web::middleware::fallback;
 
 pub struct WebServer {
     router: Router,
@@ -29,6 +31,11 @@ impl WebServer {
         self
     }
 
+    pub fn layer_auth(mut self) -> Self {
+        self.middlewares.push(Box::new(|r| r.layer(from_fn(handle_auth))));
+        self
+    }
+
     pub fn layer_fn<F, Fut>(mut self, f: F) -> Self
     where
         F: Clone + Send + Sync + 'static + Fn(Request, Next) -> Fut,
@@ -46,6 +53,10 @@ impl WebServer {
     pub async fn start(mut self) -> Result<(), WebError> {
         info!("🚀 Starting web server at {}", self.addr);
 
+        self.router = self.router
+            .method_not_allowed_fallback(fallback::method_not_allowed)
+            .fallback(fallback::not_found);
+
         for m in self.middlewares {
             self.router = m(self.router);
         }
@@ -56,7 +67,7 @@ impl WebServer {
         let server = axum::serve(listener, self.router).with_graceful_shutdown(wait_for_shutdown());
         if let Err(e) = server.await {
             error!("Server error: {}", e);
-            return Err(WebError::System(format!("Server error: {}", e)));
+            return Err(WebError::Sys(format!("Server error: {}", e)));
         }
 
         info!("🛑 Server stopped");

@@ -3,11 +3,11 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use serde::Serialize;
 
-use validator::ValidationErrors;
-use rivus_core::code::Code;
-use rust_i18n::t;
 use crate::web::error::WebError;
+use crate::web::code::Code;
+use rust_i18n::t;
 use tracing::{debug, error};
+use validator::ValidationErrors;
 
 #[derive(Serialize)]
 pub struct R<T: Serialize> {
@@ -46,7 +46,6 @@ impl<T: Serialize> R<T> {
     }
 }
 
-
 impl<T: Serialize> From<T> for R<T> {
     fn from(data: T) -> Self {
         Self::ok(data)
@@ -77,45 +76,25 @@ impl R<()> {
 
 impl<T: Serialize> IntoResponse for R<T> {
     fn into_response(self) -> axum::response::Response {
-        let status = if self.code == Code::InternalServerError.as_i32() {
-            StatusCode::INTERNAL_SERVER_ERROR
-        } else {
-            StatusCode::OK
-        };
-
+        let status = StatusCode::from_u16(self.code as u16).unwrap_or(StatusCode::OK);
         (status, Json(self)).into_response()
     }
 }
 
-
 fn map_err(err: WebError) -> (i32, String) {
     match err {
-        WebError::DbError(err) => {
-            error!("{:?}", err);
-            (
-                Code::InternalServerError.as_i32(),
-                translate(Code::InternalServerError.as_i32(), &vec![]),
-            )
-        }
-        WebError::Error(e) => {
-            error!("{:?}", e);
-            (e.code, translate(e.code, &e.args))
-        }
         WebError::Val(err) => {
             debug!("{:?}", err);
             let msg = format_validation_errors(&err);
             (Code::IllegalParam.as_i32(), msg)
         }
-        WebError::Io(e) => {
-            error!("{:?}", e);
+        WebError::Biz(code, args) => (code, translate(code, &args)),
+        _ => {
+            error!("{:?}", err);
             (
                 Code::InternalServerError.as_i32(),
                 translate(Code::InternalServerError.as_i32(), &vec![]),
             )
-        }
-        WebError::System(e) => {
-            error!("{:?}", e);
-            (Code::InternalServerError.as_i32(), e)
         }
     }
 }
@@ -169,9 +148,17 @@ fn format_validation_errors(err: &ValidationErrors) -> String {
 
 fn translate(code: i32, params: &Vec<(String, String)>) -> String {
     let key = code.to_string();
+    // 使用 t! 宏进行翻译，如果有参数则进行替换
+    // 注意：rust-i18n 的 t! 宏在运行时替换可能需要不同的方式，这里保持手动替换逻辑作为后备或增强
+    // 但更标准的做法是尽可能利用 t! 的插值能力。
+    // 由于 t! 宏是编译时展开，这里用 t!(&key) 可能只能拿到原始模板字符串，
+    // 所以手动 replace 是正确的运行时处理动态 key 的方式。
     let mut message = t!(&key).to_string();
     for (k, v) in params {
+        // 尝试替换 {key} 格式的占位符
         message = message.replace(&format!("{{{}}}", k), v);
+        // 尝试替换 %{key} 格式的占位符（有些 i18n 库习惯）
+        message = message.replace(&format!("%{{{}}}", k), v);
     }
     message
 }

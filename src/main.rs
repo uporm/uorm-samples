@@ -1,19 +1,21 @@
 use crate::config::AppConfig;
+use crate::web::server::WebServer;
 use rivus_logger::LoggerConfig;
 use uorm::driver_manager::U;
 use uorm::mapper_assets;
 use uorm::udbc::PoolOptions;
 use uorm::udbc::mysql::pool::MysqlDriver;
-use crate::web::server::WebServer;
 
 mod business;
 mod config;
+mod models;
 mod routes;
+mod utils;
 mod web;
 
 mapper_assets!["resources/mappers"];
 // 初始化翻译文件
-rust_i18n::i18n!("resources/locales", fallback = "en");
+rust_i18n::i18n!("resources/locales", fallback = "zh");
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

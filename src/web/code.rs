@@ -5,9 +5,6 @@ pub enum Code {
     // 成功：服务器成功接收客户端请求
     Ok = 200,
 
-    // 请求错误：服务器无法理解客户端的请求
-    BadRequest = 400,
-
     // 未认证：客户端未通过身份验证
     Unauthorized = 401,
 
@@ -41,8 +38,21 @@ pub enum Code {
     // 缺少必要请求头：请求中缺少必要头部字段
     MissingHeader = 900,
 
+    // 参数缺少：缺少必要参数
+    MissingParam = 901,
+
     // 参数不合法：客户端请求包含非法参数
-    IllegalParam = 901,
+    IllegalParam = 902,
+
+    // 文件夹相关
+    // 父文件夹不存在
+    FolderParentNotExist = 3101,
+    // 文件夹不存在
+    FolderNotExist = 3102,
+    // 文件夹不为空
+    FolderNotEmpty = 3103,
+    // 不能移动文件夹到自身
+    FolderMoveToSelf = 3104,
 }
 
 impl Code {
@@ -60,7 +70,6 @@ impl std::fmt::Display for Code {
 #[test]
 fn test_code() {
     assert_eq!(Code::Ok.as_i32(), 200);
-    assert_eq!(Code::BadRequest.as_i32(), 400);
     assert_eq!(Code::Ok.to_string(), "200");
     assert_eq!(format!("{}", Code::InternalServerError), "500");
 }

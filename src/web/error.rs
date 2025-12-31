@@ -1,4 +1,3 @@
-
 use serde::Serialize;
 use thiserror::Error;
 use uorm::error::DbError;
@@ -13,15 +12,17 @@ pub struct BizError {
 #[derive(Error, Debug)]
 pub enum WebError {
     #[error("{0}")]
-    DbError(#[from] DbError),
+    Db(#[from] DbError),
     #[error("{0}")]
     Val(#[from] ValidationErrors),
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
     #[error("System error: {0}")]
-    System(String),
+    Sys(String),
     #[error("{0:?}")]
-    Error(BizError),
+    Biz(i32, Vec<(String, String)>),
+    #[error("{0}")]
+    Anyhow(#[from] anyhow::Error),
 }
 
 pub type Result<T> = std::result::Result<T, WebError>;

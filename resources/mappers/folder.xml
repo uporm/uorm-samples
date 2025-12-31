@@ -4,7 +4,7 @@
 
     <!-- 目录表字段 -->
     <sql id="cols">
-        id, tenant_id, workspace_id, parent_id, seq, type, name, description, create_time, update_time
+        id, tenant_id, workspace_key, workspace_key, parent_id, type, name, seq, description, create_time, update_time
     </sql>
 
     <!--
@@ -14,10 +14,10 @@
     <select id="list">
         select
         <include refid="cols"/>
-        from sys_folder
+        from workspace_folder
         where tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
-        and type = #{type}
+        and workspace_key = #{workspaceKey}
+        and `type` = #{type_}
         order by seq asc
     </select>
 
@@ -27,9 +27,9 @@
     -->
     <select id="countChildren">
         select count(*)
-        from sys_folder
+        from workspace_folder
         where tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
+        and workspace_key = #{workspaceKey}
         and parent_id = #{parentId}
     </select>
 
@@ -40,20 +40,20 @@
     <select id="getById">
         select
         <include refid="cols"/>
-        from sys_folder
+        from workspace_folder
         where id = #{id}
         and tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
+        and workspace_key = #{workspaceKey}
     </select>
 
     <!--
         插入新的目录记录
         创建新目录时使用，会自动设置创建时间和更新时间
     -->
-    <insert id="insert" useGeneratedKeys="true" keyColumn="ids">
-        insert into sys_folder (tenant_id, workspace_id, parent_id, type, seq, name, description, create_time,
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id">
+        insert into workspace_folder (tenant_id, workspace_key, parent_id, type, name, seq, description, create_time,
         update_time)
-        values (4, 5, #{parentId}, 8, 9, #{name}, #{description}, now(), now())
+        values (#{tenantId}, #{workspaceKey}, #{parentId}, #{type_}, #{name}, #{seq}, #{description}, now(), now())
     </insert>
 
     <!--
@@ -61,13 +61,13 @@
         更新目录名称、描述，并更新更新时间
     -->
     <update id="update">
-        update sys_folder
+        update workspace_folder
         set name = #{name},
         description = #{description},
         update_time = now()
         where id = #{id}
         and tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
+        and workspace_key = #{workspaceKey}
     </update>
 
     <!--
@@ -76,10 +76,10 @@
     -->
     <delete id="delete">
         delete
-        from sys_folder
+        from workspace_folder
         where id = #{id}
         and tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
+        and workspace_key = #{workspaceKey}
     </delete>
 
     <!--
@@ -88,9 +88,9 @@
     -->
     <select id="getMaxSeq">
         select coalesce(max(seq), 0)
-        from sys_folder
+        from workspace_folder
         where tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
+        and workspace_key = #{workspaceKey}
         and parent_id = #{parentId}
     </select>
 
@@ -99,11 +99,11 @@
         为新目录腾出位置，将指定序列号及其之后的同级目录序列号都加1
     -->
     <update id="shiftSeqOnInsert">
-        update sys_folder
+        update workspace_folder
         set seq = seq + 1,
         update_time = now()
         where tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
+        and workspace_key = #{workspaceKey}
         and parent_id = #{parentId}
         and seq >= #{fromSeq}
     </update>
@@ -113,11 +113,11 @@
         消除删除目录后产生的序列号空隙，将指定序列号之后的同级目录序列号都减1
     -->
     <update id="compressSeqOnRemove">
-        update sys_folder
+        update workspace_folder
         set seq = seq - 1,
         update_time = now()
         where tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
+        and workspace_key = #{workspaceKey}
         and parent_id = #{parentId}
         and seq > #{fromSeq}
     </update>
@@ -127,12 +127,12 @@
         用于移动目录时更新其父目录和序列号信息
     -->
     <update id="updateParentAndSeq">
-        update sys_folder
+        update workspace_folder
         set parent_id = #{parentId},
         seq = #{seq},
         update_time = now()
         where tenant_id = #{tenantId}
-        and workspace_id = #{workspaceId}
+        and workspace_key = #{workspaceKey}
         and id = #{id}
     </update>
 </mapper>

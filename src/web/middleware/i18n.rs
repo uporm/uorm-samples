@@ -11,7 +11,7 @@ pub async fn handle_i18n(req: Request, next: Next) -> Response {
 }
 
 fn resolve_language(headers: &HeaderMap) -> String {
-    let default_lang = "en".to_string();
+    let default_lang = "zh".to_string();
 
     let Some(header) = headers.get("accept-language").and_then(|v| v.to_str().ok()) else {
         return default_lang;

@@ -3,18 +3,24 @@ name = "uorm-samples"
 version = "0.1.0"
 edition = "2024"
 
+# 告诉 Cargo 包含特定文件或目录
+include = [
+    "src/**/*",
+    "resources/**/*", # 假设资源文件在 resources 目录下
+]
+
 [dependencies]
+uorm = { version = "0.6.4", path = "../uorm", features = ["mysql"] }
 rivus-core = { version = "0.5.0", path = "../rivus/rivus-core" }
 rivus-logger = { version = "0.5.0", path = "../rivus/rivus-logger" }
+
 axum = "0.8.8"
-uorm = { version = "0.5.0", path = "../uorm", features = ["mysql"] }
 serde = { version = "1.0.228", features = ["derive"] }
 tokio = "1.48.0"
 anyhow = "1.0.100"
 tracing = "0.1"
 validator = { version = "0.20.0", features = ["derive"] }
-serde_with = "3.16.1"
-ctor = "0.6.3"
+sonyflake= "0.4.0"
 thiserror = "2.0.17"
 rust-i18n = "3.1.5"
 

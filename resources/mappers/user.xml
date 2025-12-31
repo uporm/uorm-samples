@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//uporm.github.io//DTD Mapper 1//EN" "https://uporm.github.io/dtd/uorm-1-mapper.dtd">
+<mapper namespace="user">
+
+    <sql id="cols">
+        id, tenant_id, name, email, passwd, is_owner as owner, description, create_time, update_time
+    </sql>
+
+    <insert id="insert">
+        insert into user (id, tenant_id, name, email, passwd, is_owner, description, create_time, update_time)
+        values (#{id}, #{tenant_id}, #{name}, #{email}, #{passwd}, #{owner}, #{description}, now(), now())
+    </insert>
+
+    <select id="list">
+        select
+        <include refid="cols"/>
+        from user
+        where tenant_id = #{tenant_id}
+    </select>
+
+    <select id="get">
+        select
+        <include refid="cols"/>
+        from user
+        where email = #{email}
+        and passwd = #{passwd}
+    </select>
+</mapper>
