@@ -1,4 +1,4 @@
-use crate::web::code::Code;
+use crate::core::code::Code;
 use crate::web::r::R;
 use axum::Json as AxumJson;
 use axum::extract::rejection::JsonRejection;
@@ -22,14 +22,16 @@ where
             Err(rejection) => {
                 let message = match rejection {
                     JsonRejection::JsonDataError(e) => format_serde_error(&e.body_text()),
-                    JsonRejection::MissingJsonContentType(_) => {
-                        t!(Code::MissingHeader.to_string(), field = "Content-Type: application/json").to_string()
-                    }
+                    JsonRejection::MissingJsonContentType(_) => t!(
+                        Code::MissingHeader.to_string(),
+                        field = "Content-Type: application/json"
+                    )
+                    .to_string(),
                     _ => t!(Code::IllegalParam.to_string(), field = "Unknown").to_string(),
                 };
 
                 let r: R<()> = R {
-                    code: Code::IllegalParam.as_i32(),
+                    code: Code::IllegalParam.into(),
                     message,
                     data: None,
                 };

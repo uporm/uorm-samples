@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//uporm.github.io//DTD Mapper 1//EN" "https://uporm.github.io/dtd/uorm-2-mapper.dtd">
+<mapper namespace="workspace_folder">
+
+    <sql id="cols">
+            id,
+            tenant_id,
+            workspace_id,
+            parent_id,
+            folder_type,
+            name,
+            seq,
+            create_at,
+            update_at
+    </sql>
+
+    <select id="list">
+        SELECT
+        <include refid="cols"/>
+        FROM workspace_folder
+        WHERE tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        AND folder_type = #{folderType}
+        ORDER BY seq
+    </select>
+
+    <select id="countChildren">
+        SELECT COUNT(*)
+        FROM workspace_folder
+        WHERE tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        AND parent_id = #{parentId}
+    </select>
+
+    <select id="getById">
+        SELECT
+        <include refid="cols"/>
+        FROM workspace_folder
+        WHERE id = #{id}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </select>
+
+    <insert id="insert" returnKey="true">
+        INSERT INTO workspace_folder (id, tenant_id, workspace_id, parent_id, folder_type, name, seq,
+        create_at, update_at)
+        VALUES (#{id}, #{tenantId}, #{workspaceId}, #{parentId}, #{folderType}, #{name}, #{seq},
+        NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE workspace_folder
+        SET name = #{name},
+            update_at = NOW()
+        WHERE id = #{id}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </update>
+
+    <delete id="delete">
+        DELETE
+        FROM workspace_folder
+        WHERE id = #{id}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </delete>
+
+    <select id="getMaxSeq">
+        SELECT COALESCE(MAX(seq), 0)
+        FROM workspace_folder
+        WHERE tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        AND parent_id = #{parentId}
+    </select>
+
+    <!--
+        在插入新目录时调整序列号
+        为新目录腾出位置，将指定序列号及其之后的同级目录序列号都加1
+    -->
+    <update id="shiftSeqOnInsert">
+        UPDATE workspace_folder
+        SET seq = seq + 1,
+            update_at = NOW()
+        WHERE tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        AND parent_id = #{parentId}
+        AND seq >= #{fromSeq}
+    </update>
+
+    <!--
+        删除目录后压缩序列号
+        消除删除目录后产生的序列号空隙，将指定序列号之后的同级目录序列号都减1
+    -->
+    <update id="compressSeqOnRemove">
+        UPDATE workspace_folder
+        SET seq = seq - 1,
+            update_at = NOW()
+        WHERE tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        AND parent_id = #{parentId}
+        AND seq > #{fromSeq}
+    </update>
+
+    <!--
+        更新目录的父级和序列号
+        用于移动目录时更新其父目录和序列号信息
+    -->
+    <update id="updateParentAndSeq">
+        UPDATE workspace_folder
+        SET parent_id = #{parentId},
+            seq = #{seq},
+            update_at = NOW()
+        WHERE tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        AND id = #{id}
+    </update>
+</mapper>

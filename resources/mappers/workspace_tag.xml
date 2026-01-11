@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//uporm.github.io//DTD Mapper 1//EN" "https://uporm.github.io/dtd/uorm-1-mapper.dtd">
-<mapper namespace="workspace">
+<mapper namespace="workspace_tag">
 
     <sql id="cols">
             id,
             tenant_id,
+            workspace_id,
+            tag_type,
             name,
-            description,
             create_at,
             update_at
     </sql>
@@ -14,36 +15,40 @@
     <select id="list">
         SELECT
         <include refid="cols"/>
-        FROM workspace
+        FROM workspace_tag
         WHERE tenant_id = #{tenantId}
-    </select>
-
-    <select id="get">
-        SELECT
-        <include refid="cols"/>
-        FROM workspace
-        WHERE id = #{id}
-        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        AND tag_type = #{tagType}
     </select>
 
     <insert id="insert">
-        INSERT INTO workspace (id, tenant_id, name, description, create_at, update_at)
-        VALUES (#{id}, #{tenantId}, #{name}, #{description}, NOW(), NOW())
+        INSERT INTO workspace_tag (id, tenant_id, workspace_id, tag_type, name, create_at, update_at)
+        VALUES (#{id}, #{tenantId}, #{workspaceId}, #{tagType}, #{name}, NOW(), NOW())
     </insert>
 
     <update id="update">
-        UPDATE workspace
+        UPDATE workspace_tag
         SET name = #{name},
-        description = #{description},
         update_at = NOW()
         WHERE id = #{id}
         AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
     </update>
 
     <delete id="delete">
         DELETE
-        FROM workspace
+        FROM workspace_tag
         WHERE id = #{id}
         AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
     </delete>
+
+    <select id="get">
+        SELECT
+        <include refid="cols"/>
+        FROM workspace_tag
+        WHERE id = #{id}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </select>
 </mapper>

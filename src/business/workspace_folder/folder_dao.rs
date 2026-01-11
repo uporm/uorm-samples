@@ -1,58 +1,37 @@
+use crate::utils::id::Id;
 use uorm::{Param, sql};
 
 #[derive(Param, Default)]
 pub struct Folder {
-    pub id: i32,
+    pub id: u64,
     pub tenant_id: u64,
-    pub workspace_key: i32,
-    pub parent_id: i32,
-    pub type_: i32,
+    pub workspace_id: u64,
+    pub parent_id: u64,
+    pub folder_type: i32,
     pub name: String,
     pub seq: i32,
-    pub description: Option<String>,
 }
 
 impl Folder {
-    pub fn new(tenant_id: u64, workspace_key: i32, type_: i32) -> Self {
+    pub fn new(tenant_id: u64, workspace_id: u64) -> Self {
         Self {
-            id: 0,
+            id: Id::next_id().unwrap_or_default(),
             tenant_id,
-            workspace_key,
-            parent_id: 0,
-            type_,
-            name: "默认目录".to_string(),
-            seq: 0,
-            description: Some("系统自动创建的默认目录".to_string()),
+            workspace_id,
+            ..Default::default()
         }
-    }
-
-    pub fn parent_id(&mut self, parent_id: i32) -> &mut Self {
-        self.parent_id = parent_id;
-        self
-    }
-    pub fn name(&mut self, name: String) -> &mut Self {
-        self.name = name;
-        self
-    }
-    pub fn seq(&mut self, seq: i32) -> &mut Self {
-        self.seq = seq;
-        self
-    }
-    pub fn description(&mut self, description: Option<String>) -> &mut Self {
-        self.description = description;
-        self
     }
 }
 
-#[sql("folder")]
+#[sql("workspace_folder")]
 pub struct FolderDao;
 
 impl FolderDao {
     #[sql("list")]
     pub async fn list(
         tenant_id: u64,
-        workspace_key: i32,
-        type_: i32,
+        workspace_id: u64,
+        folder_type: i32,
     ) -> uorm::Result<Vec<Folder>> {
         exec!()
     }
@@ -60,8 +39,8 @@ impl FolderDao {
     #[sql("countChildren")]
     pub async fn count_children(
         tenant_id: u64,
-        workspace_key: i32,
-        parent_id: i32,
+        workspace_id: u64,
+        parent_id: u64,
     ) -> uorm::Result<i32> {
         exec!()
     }
@@ -69,8 +48,8 @@ impl FolderDao {
     #[sql("getById")]
     pub async fn get_by_id(
         tenant_id: u64,
-        workspace_key: i32,
-        id: i32,
+        workspace_id: u64,
+        id: u64,
     ) -> uorm::Result<Option<Folder>> {
         exec!()
     }
@@ -86,34 +65,34 @@ impl FolderDao {
     }
 
     #[sql("delete")]
-    pub async fn delete(tenant_id: u64, workspace_key: i32, id: i32) -> uorm::Result<()> {
+    pub async fn delete(tenant_id: u64, workspace_id: u64, id: u64) -> uorm::Result<()> {
         exec!()
     }
 
     #[sql("getMaxSeq")]
     pub async fn get_max_seq(
         tenant_id: u64,
-        workspace_key: i32,
-        parent_id: i32,
+        workspace_id: u64,
+        parent_id: u64,
     ) -> uorm::Result<Option<i32>> {
         exec!()
     }
 
     #[sql("shiftSeqOnInsert")]
-    pub async fn shift_seq_on_insert(
+    pub async fn shift_seq(
         tenant_id: u64,
-        workspace_key: i32,
-        parent_id: i32,
+        workspace_id: u64,
+        parent_id: u64,
         from_seq: i32,
     ) -> uorm::Result<()> {
         exec!()
     }
 
     #[sql("compressSeqOnRemove")]
-    pub async fn compress_seq_on_remove(
+    pub async fn compress_seq(
         tenant_id: u64,
-        workspace_key: i32,
-        parent_id: i32,
+        workspace_id: u64,
+        parent_id: u64,
         from_seq: i32,
     ) -> uorm::Result<()> {
         exec!()
@@ -122,9 +101,9 @@ impl FolderDao {
     #[sql("updateParentAndSeq")]
     pub async fn update_parent_and_seq(
         tenant_id: u64,
-        workspace_key: i32,
-        id: i32,
-        parent_id: i32,
+        workspace_id: u64,
+        id: u64,
+        parent_id: u64,
         seq: i32,
     ) -> uorm::Result<()> {
         exec!()

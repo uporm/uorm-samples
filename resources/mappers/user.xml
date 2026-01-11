@@ -3,26 +3,34 @@
 <mapper namespace="user">
 
     <sql id="cols">
-        id, tenant_id, name, email, passwd, is_owner as owner, description, create_time, update_time
+            id,
+            tenant_id,
+            name,
+            email,
+            passwd,
+            is_owner AS owner,
+            description,
+            create_at,
+            update_at
     </sql>
 
     <insert id="insert">
-        insert into user (id, tenant_id, name, email, passwd, is_owner, description, create_time, update_time)
-        values (#{id}, #{tenant_id}, #{name}, #{email}, #{passwd}, #{owner}, #{description}, now(), now())
+        INSERT INTO user (id, tenant_id, name, email, passwd, is_owner, description, create_at, update_at)
+        VALUES (#{id}, #{tenant_id}, #{name}, #{email}, #{passwd}, #{owner}, #{description}, NOW(), NOW())
     </insert>
 
     <select id="list">
-        select
+        SELECT
         <include refid="cols"/>
-        from user
-        where tenant_id = #{tenant_id}
+        FROM user
+        WHERE tenant_id = #{tenant_id}
     </select>
 
     <select id="get">
-        select
+        SELECT
         <include refid="cols"/>
-        from user
-        where email = #{email}
-        and passwd = #{passwd}
+        FROM user
+        WHERE email = #{email}
+        AND passwd = #{passwd}
     </select>
 </mapper>

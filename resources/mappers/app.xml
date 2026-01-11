@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//uporm.github.io//DTD Mapper 1//EN" "https://uporm.github.io/dtd/uorm-2-mapper.dtd">
+<mapper namespace="app">
+
+    <sql id="cols">
+            id,
+            tenant_id,
+            workspace_id,
+            folder_id,
+            app_type,
+            name,
+            description,
+            tags,
+            create_at,
+            update_at
+    </sql>
+
+    <!--
+        查询应用列表
+        支持按folder_id、name和tag_ids过滤
+    -->
+    <select id="list">
+        SELECT
+        <include refid="cols"/>
+        FROM app
+        WHERE tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        <if test="query.folderId != null">
+            AND folder_id = #{query.folderId}
+        </if>
+        <if test="query.appType != null">
+            AND app_type = #{query.appType}
+        </if>
+        <if test="query.name != null and query.name != ''">
+            AND name LIKE CONCAT('%', #{query.name}, '%')
+        </if>
+        <if test="query.tagIds != null">
+            AND (
+            <foreach item="tagId" collection="query.tagIds" separator=" OR ">
+                JSON_CONTAINS(tags, CAST(#{tagId} AS CHAR))
+            </foreach>
+            )
+        </if>
+        ORDER BY create_at DESC
+    </select>
+
+    <select id="getById">
+        SELECT
+        a.id, a.tenant_id, a.workspace_id, a.folder_id, a.app_type, a.name, a.description, a.tags, a.create_at,
+        a.update_at
+        FROM app a
+        WHERE a.id = #{id}
+        AND a.tenant_id = #{tenantId}
+        AND a.workspace_id = #{workspaceId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO app (id, tenant_id, workspace_id, folder_id, app_type, name, description, tags, create_at,
+        update_at)
+        VALUES (#{id}, #{tenantId}, #{workspaceId}, #{folderId}, #{appType}, #{name}, #{description}, #{tags}, NOW(),
+        NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE app
+        SET name = #{name},
+        description = #{description},
+        tags = #{tags},
+        update_at = NOW()
+        WHERE id = #{id}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM app
+        WHERE id = #{id}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </delete>
+
+    <delete id="deleteByFolderId">
+        DELETE FROM app
+        WHERE folder_id = #{folderId}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </delete>
+
+    <insert id="clone">
+        INSERT INTO app (id, tenant_id, workspace_id, folder_id, app_type, name, description, tags, spec, create_at,
+        update_at)
+        SELECT #{newId}, tenant_id, workspace_id, folder_id, app_type, #{name}, #{description}, tags, spec, NOW(), NOW()
+        FROM app
+        WHERE id = #{oldId}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </insert>
+
+    <select id="getSpec">
+        SELECT spec
+        FROM app
+        WHERE app_id = #{appId}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </select>
+
+    <insert id="updateSpec">
+        UPDATE app
+        SET spec = #{spec}
+        WHERE app_id = #{appId}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </insert>
+
+    <update id="cancelLatest">
+        UPDATE app_version
+        SET is_latest = false
+        WHERE app_id = #{appId}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+        AND is_latest = true
+    </update>
+
+    <insert id="insertVersion">
+        INSERT INTO app_version (id, tenant_id, workspace_id, app_id, version, major, minor, patch, pre_release,
+        spec, description, is_latest, create_at)
+        VALUES (#{id}, #{tenantId}, #{workspaceId}, #{appId}, #{version},
+        #{major}, #{minor}, #{patch}, #{preRelease}, #{spec}, #{description}, #{isLatest}, now())
+    </insert>
+
+    <delete id="deleteVersions">
+        DELETE FROM app_version
+        WHERE app_id = #{appId}
+        AND tenant_id = #{tenantId}
+        AND workspace_id = #{workspaceId}
+    </delete>
+</mapper>

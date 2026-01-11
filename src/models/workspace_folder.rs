@@ -1,5 +1,5 @@
+use crate::business::workspace_folder::folder_dao::Folder;
 use crate::web::ts_str::to_number;
-use crate::business::folder::folder_dao::Folder;
 use crate::web::ts_str::to_str;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -8,11 +8,10 @@ use validator::Validate;
 #[serde(rename_all = "camelCase")]
 pub struct FolderResp {
     #[serde(serialize_with = "to_str")]
-    pub id: i32,
+    pub id: u64,
     #[serde(serialize_with = "to_str")]
-    pub parent_id: i32,
+    pub parent_id: u64,
     pub name: String,
-    pub description: Option<String>,
     pub seq: i32,
     pub children: Vec<FolderResp>,
 }
@@ -23,21 +22,26 @@ impl From<Folder> for FolderResp {
             id: folder.id,
             parent_id: folder.parent_id,
             name: folder.name,
-            description: folder.description,
             seq: folder.seq,
             children: vec![],
         }
     }
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FolderReq {
+    pub folder_type: i32,
+}
+
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateFolderReq {
     #[serde(deserialize_with = "to_number")]
-    pub parent_id: i32,
+    pub parent_id: u64,
     #[validate(length(min = 1))]
     pub name: String,
-    pub description: Option<String>,
+    pub folder_type: i32,
 }
 
 #[derive(Deserialize, Validate)]
@@ -45,13 +49,12 @@ pub struct CreateFolderReq {
 pub struct UpdateFolderReq {
     #[validate(length(min = 1))]
     pub name: String,
-    pub description: Option<String>,
 }
 
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct MoveFolderReq {
     #[serde(deserialize_with = "to_number")]
-    pub parent_id: i32,
+    pub parent_id: u64,
     pub seq: i32,
 }

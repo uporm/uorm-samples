@@ -12,6 +12,7 @@ mod models;
 mod routes;
 mod utils;
 mod web;
+mod core;
 
 mapper_assets!["resources/mappers"];
 // 初始化翻译文件
@@ -42,6 +43,7 @@ async fn main() -> anyhow::Result<()> {
     let driver = driver.build()?;
     U.register(driver)?;
 
+    // 3. 启动服务
     WebServer::new(&conf.server)
         .mount(routes::router())
         .layer_i18n()

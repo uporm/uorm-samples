@@ -20,7 +20,9 @@ pub enum WebError {
     #[error("System error: {0}")]
     Sys(String),
     #[error("{0:?}")]
-    Biz(i32, Vec<(String, String)>),
+    BizWithArgs(i32, Vec<(String, String)>),
+    #[error("{0}")]
+    Biz(i32),
     #[error("{0}")]
     Anyhow(#[from] anyhow::Error),
 }

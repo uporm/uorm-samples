@@ -1,3 +1,3 @@
 pub mod auth;
-pub mod i18n;
 pub mod fallback;
+pub mod i18n;

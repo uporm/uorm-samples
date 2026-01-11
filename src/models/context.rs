@@ -2,7 +2,7 @@
 pub struct Context {
     pub tenant_id: u64,
     pub user_id: u64,
-    pub workspace_key: i32,
+    pub workspace_id: u64,
 }
 
 // Axum extractor for Context
@@ -23,4 +23,3 @@ where
             .ok_or(axum::http::StatusCode::UNAUTHORIZED)
     }
 }
-

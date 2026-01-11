@@ -1,22 +1,11 @@
-use uorm::{Param, sql};
+use uorm::{sql, Param};
 
 #[derive(Param)]
 pub struct Workspace {
     pub tenant_id: u64,
-    pub key: i32,
+    pub id: u64,
     pub name: String,
     pub description: Option<String>,
-}
-
-impl Workspace {
-    pub fn new(tenant_id: u64, key: i32, name: String, description: Option<String>) -> Self {
-        Workspace {
-            tenant_id,
-            key,
-            name,
-            description,
-        }
-    }
 }
 
 #[sql("workspace")]
@@ -24,7 +13,7 @@ pub struct WorkspaceDao;
 
 impl WorkspaceDao {
     #[sql("insert")]
-    pub async fn insert(workspace: Workspace) -> uorm::Result<()> {
+    pub async fn insert(workspace: &Workspace) -> uorm::Result<()> {
         exec!()
     }
 
@@ -34,7 +23,7 @@ impl WorkspaceDao {
     }
 
     #[sql("delete")]
-    pub async fn delete(tenant_id: u64, key: i32) -> uorm::Result<()> {
+    pub async fn delete(tenant_id: u64, id: u64) -> uorm::Result<()> {
         exec!()
     }
 
@@ -43,8 +32,8 @@ impl WorkspaceDao {
         exec!()
     }
 
-    #[sql("getMaxKey")]
-    pub async fn get_max_key(tenant_id: u64) -> uorm::Result<Option<i32>> {
+    #[sql("get")]
+    pub async fn get(tenant_id: u64, id: u64) -> uorm::Result<Option<Workspace>> {
         exec!()
     }
 }

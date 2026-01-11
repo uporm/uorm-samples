@@ -44,6 +44,30 @@ pub enum Code {
     // 参数不合法：客户端请求包含非法参数
     IllegalParam = 902,
 
+    // 校验相关错误码
+    // 字段必填
+    ValidationRequired = 1001,
+    // 长度必须在范围内
+    ValidationLengthBetween = 1002,
+    // 长度必须至少为
+    ValidationLengthMin = 1003,
+    // 长度必须至多为
+    ValidationLengthMax = 1004,
+    // 长度无效
+    ValidationLengthInvalid = 1005,
+    // 数值必须在范围内
+    ValidationRangeBetween = 1006,
+    // 数值必须至少为
+    ValidationRangeMin = 1007,
+    // 数值必须至多为
+    ValidationRangeMax = 1008,
+    // 数值超出范围
+    ValidationRangeInvalid = 1009,
+    // 必须是有效的电子邮件地址
+    ValidationEmail = 1010,
+    // 无效（未知的校验错误）
+    ValidationUnknown = 1011,
+
     // 文件夹相关
     // 父文件夹不存在
     FolderParentNotExist = 3101,
@@ -53,23 +77,40 @@ pub enum Code {
     FolderNotEmpty = 3103,
     // 不能移动文件夹到自身
     FolderMoveToSelf = 3104,
+
+    // 应用相关
+    AppParentFolderNotExist = 3201, // 所属目录不存在
+    AppNotExist = 3202,             // 应用不存在
+    AppDraftNotExist = 3203,        // 应用草稿不存在
+
+    // 工作空间相关
+    // 不能删除当前工作空间
+    WorkspaceCurrentCannotDelete = 3301,
+    // 未选择工作空间
+    WorkspaceNotSelected = 3302,
+    // 工作空间不存在
+    WorkspaceNotExist = 3303,
+
+    // 标签相关
+    // 标签不存在
+    TagNotExist = 3401,
 }
 
-impl Code {
-    pub fn as_i32(&self) -> i32 {
-        *self as i32
+impl From<Code> for i32 {
+    fn from(code: Code) -> Self {
+        code as i32
     }
 }
 
 impl std::fmt::Display for Code {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_i32())
+        write!(f, "{}", i32::from(*self))
     }
 }
 
 #[test]
 fn test_code() {
-    assert_eq!(Code::Ok.as_i32(), 200);
+    assert_eq!(Code::Ok as i32, 200);
     assert_eq!(Code::Ok.to_string(), "200");
     assert_eq!(format!("{}", Code::InternalServerError), "500");
 }
